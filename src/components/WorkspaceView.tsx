@@ -66,12 +66,14 @@ import { UpdateNotice } from "./UpdateNotice";
 import { useAvailableUpdate, dismissUpdate, startUpdateChecks, installUpdate, openReleaseNotes } from "../store/updates";
 import { startModelManifestFetch } from "../lib/remoteConfig";
 import { startAgentHooks } from "../store/agentHooks";
+import { agentRuntime } from "../lib/agentRuntime";
 import { setWorkspaceApi } from "../lib/mobileBridge/workspaceApi";
 import { AtlasIndexModal } from "./AtlasIndexModal";
 import { CloneRepoModal } from "./CloneRepoModal";
 import { KnowledgeBasePage } from "./KnowledgeBasePage";
 import { TasksPage } from "./TasksPage";
 import { AutomationsPage } from "./Automations/AutomationsPage";
+import { BrowserAgentPage } from "./BrowserAgentPage";
 import AgentTabs from "./AgentTabs";
 import IconCapsule from "./IconCapsule";
 import { AttentionPill } from "./SessionBadges";
@@ -820,6 +822,21 @@ export function WorkspaceView({ zen, name, path }: Props) {
 
     try {
       const sessionId = providedSessionId ?? crypto.randomUUID();
+      // Register CLI agents with the unified Andro runtime using the same stable
+      // session id that PTY, hooks, persistence, and worktree isolation already use.
+      // OpenCode is the first non-Claude integration completed through this path;
+      // capabilities intentionally exclude browser/skills until those phases land.
+      if (agent) {
+        const capabilities = ["filesystem", "terminal", "git"] as const;
+        agentRuntime.createSession({
+          sessionId,
+          agent,
+          projectRoot: cwd,
+          worktree: cwd,
+          capabilities: [...capabilities],
+          metadata: { placement },
+        });
+      }
       // The session id IS the stable cross-restart identity — persisted as the row
       // primary key and reused via providedSessionId on resume. With row identity,
       // multiple agents/terminals can coexist and persist in the same worktree
@@ -1003,6 +1020,7 @@ export function WorkspaceView({ zen, name, path }: Props) {
         }
         removeSession(sessionId);
         sessionManager.unregister(sessionId);
+        agentRuntime.removeSession(sessionId);
         // Surface the reason, then rethrow so existing caller-side cleanup runs.
         setPolicyError(String(e));
         void track("agent_launch_failed", {
@@ -1019,6 +1037,11 @@ export function WorkspaceView({ zen, name, path }: Props) {
 
       // Hand the channel to the Session Manager. It owns the subscription, runs
       // work-done detection on raw bytes, and maintains the replay buffer.
+      if (agent) {
+        agentRuntime.setState(sessionId, "working");
+        agentRuntime.publish(sessionId, "process-started", { agent, cwd: effectiveCwd });
+      }
+
       sessionManager.register(
         sessionId,
         channel,
@@ -2246,6 +2269,9 @@ export function WorkspaceView({ zen, name, path }: Props) {
             {!activeSessionId && activeSection === "automations" && (
               <AutomationsPage />
             )}
+            {!activeSessionId && activeSection === "browser-agent" && (
+              <BrowserAgentPage />
+            )}
             {!activeSessionId && activeSection === "overview" && (
               <div className="overview-page">
                 <div className="overview-container">
@@ -2599,7 +2625,7 @@ export function WorkspaceView({ zen, name, path }: Props) {
         document.body
       )}
 
-      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} initialSection={settingsInitialSection as any} />}
+      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} initialSection={settingsInitialSection as any} projectPath={activeSessionId ? getSession(activeSessionId)?.cwd : undefined} />}
       {cloneModalOpen && (
         <CloneRepoModal
           onClose={() => setCloneModalOpen(false)}

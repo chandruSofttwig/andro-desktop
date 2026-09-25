@@ -102,7 +102,10 @@ function defManaged(def: HookDef): boolean {
 }
 
 export const antigravityAdapter: HookAdapter = {
-  id: "antigravity",
+  // The manifest/launcher uses the stable agent id "agy" for Antigravity.
+  // Keep the hook adapter keyed to that same id so runtime hook events resolve
+  // correctly through getAdapter(agent).
+  id: "agy",
   coversWaiting: false,
 
   plan(paths: HookPaths): AdapterInstall {

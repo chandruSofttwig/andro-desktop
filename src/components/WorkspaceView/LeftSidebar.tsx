@@ -3,6 +3,7 @@ import {
   LayoutGrid, Brain, List, Workflow, FolderPlus, TerminalSquare, Cpu,
   ChevronDown, ChevronRight, GitBranch, Plus, Cog, Waypoints, Trash2,
   Bug, Mail, SunMoon, Settings, FolderOpen, Eye, Globe, FileCode, Download,
+  MessageSquareDot,
 } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import type { Session, Worktree, Project, NavSection } from "../../types/workspace";
@@ -144,6 +145,10 @@ function LeftSidebarImpl(props: LeftSidebarProps) {
         <button className={navBtn("automations")} onClick={() => goTo("automations")}>
           <Workflow size={16} />
           <span>Automations</span>
+        </button>
+        <button className={navBtn("browser-agent")} onClick={() => goTo("browser-agent")}>
+          <MessageSquareDot size={16} />
+          <span>ChatGPT Agent</span>
         </button>
       </div>
 

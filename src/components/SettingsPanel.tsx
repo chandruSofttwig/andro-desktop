@@ -17,19 +17,21 @@ import { KeyboardSection } from "./SettingsPanel/KeyboardSection";
 import { AttributionSection } from "./SettingsPanel/AttributionSection";
 import { AboutSection } from "./SettingsPanel/AboutSection";
 import { ExperimentalSection } from "./SettingsPanel/ExperimentalSection";
+import { SkillsSection } from "./SettingsPanel/SkillsSection";
 import "./SettingsPanel.css";
 
 export { AttributionSection } from "./SettingsPanel/AttributionSection";
 
-type Section = "appearance" | "terminal" | "git" | "intelligence" | "security" | "mobile" | "agents" | "apikeys" | "prompts" | "keyboard" | "attribution" | "experimental" | "about";
+type Section = "appearance" | "terminal" | "git" | "intelligence" | "security" | "mobile" | "agents" | "skills" | "apikeys" | "prompts" | "keyboard" | "attribution" | "experimental" | "about";
 
 interface SettingsPanelProps {
   onClose: () => void;
   onAttributionToggle?: (enabled: boolean) => void;
   initialSection?: Section;
+  projectPath?: string;
 }
 
-export function SettingsPanel({ onClose, onAttributionToggle, initialSection }: SettingsPanelProps) {
+export function SettingsPanel({ onClose, onAttributionToggle, initialSection, projectPath }: SettingsPanelProps) {
   const [activeSection, setActiveSection] = useState<Section>(initialSection ?? "appearance");
   const { theme, themes, setTheme } = useTheme();
   const { experimentalMobile } = useSettings();
@@ -116,6 +118,13 @@ export function SettingsPanel({ onClose, onAttributionToggle, initialSection }: 
               Agents
             </button>
             <button
+              className={`sp-nav-item${activeSection === "skills" ? " sp-nav-item--active" : ""}`}
+              onClick={() => setActiveSection("skills")}
+            >
+              <Bot size={14} />
+              Skills
+            </button>
+            <button
               className={`sp-nav-item${activeSection === "apikeys" ? " sp-nav-item--active" : ""}`}
               onClick={() => setActiveSection("apikeys")}
             >
@@ -170,6 +179,7 @@ export function SettingsPanel({ onClose, onAttributionToggle, initialSection }: 
             {activeSection === "security" && <SecuritySection />}
             {activeSection === "mobile" && experimentalMobile && <MobileSection />}
             {activeSection === "agents" && <AgentsSection />}
+            {activeSection === "skills" && <SkillsSection projectPath={projectPath} />}
             {activeSection === "apikeys" && <ApiKeysSection />}
             {activeSection === "prompts" && <PromptsSection />}
             {activeSection === "keyboard" && <KeyboardSection />}

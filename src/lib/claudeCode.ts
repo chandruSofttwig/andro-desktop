@@ -16,6 +16,7 @@ type BridgeEvent =
   | { t: "session"; sessionId: string }
   | { t: "text"; text: string }
   | { t: "tool_use"; id: string; name: string; input: unknown }
+  | { t: "tool_output"; id: string; output: string; stream?: "stdout" | "stderr" | "info" }
   | { t: "tool_result"; id: string; content: unknown; isError: boolean }
   | { t: "permission"; id: string; name: string; title?: string; description?: string; input: unknown }
   | { t: "result"; sessionId: string; inputTokens: number; outputTokens: number; isError: boolean; errorSubtype?: string }
@@ -78,6 +79,9 @@ export function streamClaudeCode(options: StreamClaudeCodeOptions): ClaudeCodeSt
             break;
           case "tool_use":
             onEvent({ type: "tool-call", id: ev.id, toolName: ev.name, args: ev.input });
+            break;
+          case "tool_output":
+            onEvent({ type: "tool-output", id: ev.id, output: ev.output, stream: ev.stream });
             break;
           case "tool_result":
             onEvent({ type: "tool-result", id: ev.id, toolName: "", result: ev.content });

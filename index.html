@@ -9,6 +9,39 @@
 
   <body>
     <div id="root"></div>
+    <script>
+      // Web-preview shim: Tempest is a Tauri desktop app and expects
+      // `window.__TAURI_INTERNALS__` (injected by the real Tauri runtime)
+      // before any @tauri-apps/api call — without it, the very first
+      // `invoke()`/`getCurrentWindow()` throws and the whole React tree
+      // fails to mount. This installs a minimal stand-in ONLY when that
+      // real object is missing (i.e. the app was opened as a plain web page
+      // for UI preview, not launched via `tauri dev`/the built app), so the
+      // shell renders instead of crashing. Every native capability —
+      // terminals, the filesystem, the hidden browser-agent webview, etc. —
+      // still requires the real desktop app; this only prevents a hard
+      // crash so the UI itself is visible and inspectable.
+      //
+      // Runs as a plain (non-module) synchronous script, so it executes
+      // before the deferred `type="module"` script below — guaranteeing the
+      // shim is in place before main.tsx's first Tauri API import runs.
+      if (!window.__TAURI_INTERNALS__) {
+        let nextCallbackId = 1;
+        window.__TAURI_INTERNALS__ = {
+          metadata: {
+            currentWindow: { label: "main" },
+            currentWebview: { windowLabel: "main", label: "main" },
+          },
+          invoke: () =>
+            Promise.reject(
+              new Error("Tauri API unavailable — this is a web preview, not the desktop app"),
+            ),
+          transformCallback: () => nextCallbackId++,
+          unregisterCallback: () => {},
+          convertFileSrc: (filePath) => filePath,
+        };
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

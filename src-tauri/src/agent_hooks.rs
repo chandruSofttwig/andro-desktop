@@ -165,6 +165,7 @@ fn handle_request(app: &AppHandle, token: &str, mut request: tiny_http::Request)
         let _ = request.respond(tiny_http::Response::empty(404));
         return;
     }
+
     // URL is `/hook/<agent>`; agent selects the TS adapter.
     let agent = request
         .url()

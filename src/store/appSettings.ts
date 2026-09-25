@@ -46,6 +46,11 @@ export interface AppSettings {
   // bridge falls back to `where`/`which claude` on PATH. Corporate/offline
   // users can point this at their pinned install.
   claudeCliPath: string;
+  // Set once the user has completed the hidden ChatGPT browser-agent's
+  // one-time login onboarding (src/components/BrowserAgentPage.tsx). The
+  // webview is only ever shown on-screen for that step; this flag is what
+  // keeps it from being shown again on subsequent app launches.
+  browserAgentLoggedIn: boolean;
 }
 
 export const SETTINGS_DEFAULTS: AppSettings = {
@@ -69,6 +74,7 @@ export const SETTINGS_DEFAULTS: AppSettings = {
   experimentalWarp: false,
   experimentalMobile: false,
   claudeCliPath: "",
+  browserAgentLoggedIn: false,
 };
 
 export const FONT_FAMILY_OPTIONS: { label: string; value: string }[] = [

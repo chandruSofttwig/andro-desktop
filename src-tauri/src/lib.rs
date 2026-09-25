@@ -7,7 +7,9 @@ use tauri::Emitter;
 use hephaestus::Isolate;
 
 mod agent_hooks;
+mod andro_activity;
 mod automations;
+mod browser_agent;
 mod canvas_mcp;
 mod claude_bridge;
 mod git_clone;
@@ -3930,7 +3932,13 @@ async fn create_pty_session(
 
         #[cfg(not(windows))]
         cmd.env("TERM", "xterm-256color");
-
+	#[cfg(not(windows))]
+if let Ok(path) = std::env::var("PATH") {
+    let local_bin = "/home/chan/.local/bin";
+    if !path.split(':').any(|p| p == local_bin) {
+        cmd.env("PATH", format!("{local_bin}:{path}"));
+    }
+}
         // Project env from tempest.yml. Applied before the DB block below so an
         // isolated session's DATABASE_URL can never be shadowed by the repo.
         if let Some(ref extra) = env {
@@ -4573,6 +4581,11 @@ pub fn run() {
             // Loopback receiver for agent lifecycle hooks. Best-effort; a bind
             // failure leaves sessions on PTY-scraped status.
             agent_hooks::start(app.handle().clone());
+            // Live activity stream from the user's local browser-agent-mcp
+            // server (Andro Agent), if running. Best-effort; retries with
+            // backoff forever rather than failing if the service isn't up
+            // yet or the auth token can't be found.
+            andro_activity::start(app.handle().clone());
             // Per-branch dev-server hostname proxy. Best-effort; dormant on port
             // conflict (direct localhost:<port> still works).
             let routes: service_proxy::Routes = Default::default();
@@ -4622,6 +4635,13 @@ pub fn run() {
             resize_ide_panel,
             destroy_ide_panel,
             get_ide_panel_url,
+            browser_agent::spawn_browser_agent,
+            browser_agent::show_browser_agent_for_login,
+            browser_agent::hide_browser_agent,
+            browser_agent::destroy_browser_agent,
+            browser_agent::send_prompt_to_browser_agent,
+            browser_agent::new_browser_agent_chat,
+            browser_agent::import_browser_agent_cookies_firefox,
             read_file,
             write_file,
             hooks_write_atomic,

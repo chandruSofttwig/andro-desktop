@@ -1,0 +1,417 @@
+.browser-agent-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px 20px;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.browser-agent-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+
+.browser-agent-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.browser-agent-new-session-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--tempest-border-subtle, var(--tempest-fg-subtle));
+  background: transparent;
+  color: var(--tempest-fg-muted);
+  cursor: pointer;
+}
+
+.browser-agent-new-session-btn:hover {
+  color: var(--tempest-fg-default);
+  background: var(--tempest-bg-hover);
+}
+
+.browser-agent-sessions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  overflow-x: auto;
+  padding: 2px 0;
+  border-bottom: 1px solid var(--tempest-border-subtle, var(--tempest-fg-subtle));
+}
+
+.browser-agent-session-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 210px;
+  padding: 6px 7px;
+  border: 1px solid transparent;
+  border-radius: 6px 6px 0 0;
+  background: transparent;
+  color: var(--tempest-fg-muted);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.browser-agent-session-tab:hover {
+  background: var(--tempest-bg-hover);
+  color: var(--tempest-fg-default);
+}
+
+.browser-agent-session-tab--active {
+  background: var(--tempest-bg-hover);
+  border-color: var(--tempest-border-subtle, var(--tempest-fg-subtle));
+  color: var(--tempest-fg-default);
+}
+
+.browser-agent-session-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.browser-agent-session-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: var(--tempest-fg-subtle);
+}
+
+.browser-agent-session-dot--active {
+  background: var(--tempest-accent-green, #4ade80);
+}
+
+.browser-agent-session-dot--starting {
+  background: var(--tempest-accent-yellow, #facc15);
+}
+
+.browser-agent-session-dot--error {
+  background: var(--tempest-accent-red, #f87171);
+}
+
+.browser-agent-session-dot--idle {
+  background: var(--tempest-fg-muted);
+}
+
+.browser-agent-session-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 2px;
+  border-radius: 4px;
+  color: var(--tempest-fg-subtle);
+}
+
+.browser-agent-session-close:hover {
+  background: var(--tempest-bg-active);
+  color: var(--tempest-fg-default);
+}
+
+.browser-agent-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tempest-fg-default);
+}
+
+.browser-agent-status {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  color: var(--tempest-fg-muted);
+  border: 1px solid var(--tempest-border-subtle, var(--tempest-fg-subtle));
+  text-transform: capitalize;
+}
+
+.browser-agent-status--active { color: var(--tempest-accent-green, #4ade80); }
+.browser-agent-status--error { color: var(--tempest-accent-red, #f87171); }
+
+.browser-agent-login-btn,
+.browser-agent-login-confirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--tempest-border-subtle, var(--tempest-fg-subtle));
+  background: var(--tempest-bg-hover);
+  color: var(--tempest-fg-default);
+  cursor: pointer;
+}
+
+.browser-agent-onboarding-note {
+  font-size: 12px;
+  color: var(--tempest-fg-muted);
+}
+
+.browser-agent-external-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: 420px;
+  margin: 40px auto;
+  padding: 24px;
+  text-align: center;
+  color: var(--tempest-fg-muted);
+}
+
+.browser-agent-external-panel p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--tempest-fg-default);
+}
+
+.browser-agent-link-btn {
+  border: none;
+  background: none;
+  color: var(--tempest-fg-subtle);
+  font-size: 11px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.browser-agent-login-rect {
+  /* Deliberately NOT flex:1 — that stretched this to fill the entire
+     remaining page, so the docked ChatGPT webview visually took over the
+     whole content pane instead of reading as a contained login panel with
+     Tempest's own header/note/confirm-button chrome clearly around it. */
+  width: 100%;
+  max-width: 820px;
+  height: 560px;
+  max-height: 70vh;
+  margin: 0 auto;
+  border: 1px dashed var(--tempest-fg-subtle);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* Sibling of .browser-agent-login-rect, never a child — the native ChatGPT
+   webview is docked exactly over that rect's bounds and would cover
+   (and swallow clicks on) anything drawn inside it. */
+.browser-agent-login-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.browser-agent-login-confirm {
+  margin-top: 0;
+}
+
+.browser-agent-timeline {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.browser-agent-timeline-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.browser-agent-timeline-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tempest-fg-subtle);
+  font-size: 12px;
+}
+
+.browser-agent-tool-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.browser-agent-narration {
+  font-size: 12px;
+  color: var(--tempest-fg-default);
+  padding: 0 8px;
+}
+
+.browser-agent-turn {
+  display: flex;
+}
+
+.browser-agent-turn--user {
+  justify-content: flex-end;
+}
+
+.browser-agent-turn--assistant {
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.browser-agent-turn-icon {
+  color: var(--tempest-fg-muted);
+  margin-top: 3px;
+}
+
+.browser-agent-turn-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  max-width: 80%;
+}
+
+.browser-agent-turn-speaker {
+  font-size: 11px;
+  color: var(--tempest-fg-subtle);
+}
+
+.browser-agent-bubble {
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 8px 11px;
+  border-radius: 10px;
+}
+
+.browser-agent-bubble--user {
+  background: var(--tempest-accent-blue, var(--tempest-bg-active));
+  color: var(--tempest-fg-on-accent, #fff);
+  max-width: 70%;
+}
+
+.browser-agent-bubble--assistant {
+  background: var(--tempest-bg-hover);
+  color: var(--tempest-fg-default);
+}
+
+.browser-agent-reply {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-wrap: anywhere;
+}
+
+.browser-agent-reply h1 { font-size: 20px; }
+.browser-agent-reply h2 { font-size: 17px; }
+.browser-agent-reply h3 { font-size: 15px; }
+.browser-agent-reply h4,
+.browser-agent-reply h5,
+.browser-agent-reply h6 {
+  font-size: 13px;
+  margin: 12px 0 6px;
+}
+
+.browser-agent-reply a {
+  color: var(--tempest-accent-blue, inherit);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.browser-agent-reply table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 10px 0;
+}
+
+.browser-agent-reply th,
+.browser-agent-reply td {
+  border: 1px solid var(--tempest-border-default);
+  padding: 6px 10px;
+}
+
+.browser-agent-reply th {
+  background: var(--tempest-bg-active);
+}
+
+.browser-agent-reply hr {
+  border: 0;
+  border-top: 1px solid var(--tempest-border-default);
+  margin: 16px 0;
+}
+
+.browser-agent-reply img {
+  max-width: 100%;
+  height: auto;
+}
+
+.browser-agent-typing {
+  color: var(--tempest-fg-subtle);
+  font-style: italic;
+}
+
+.browser-agent-composer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.browser-agent-composer input {
+  flex: 1;
+  font-size: 13px;
+  padding: 8px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--tempest-border-subtle, var(--tempest-fg-subtle));
+  background: var(--tempest-bg-hover);
+  color: var(--tempest-fg-default);
+}
+
+.browser-agent-composer button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: var(--tempest-bg-active);
+  color: var(--tempest-fg-default);
+  cursor: pointer;
+}
+
+.browser-agent-composer button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.browser-agent-warning {
+  font-size: 11px;
+  color: var(--tempest-accent-red, #f87171);
+}
+
+.browser-agent-diagnostics {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--tempest-fg-subtle);
+  text-align: center;
+}
+
+.browser-agent-raw-debug {
+  max-height: 160px;
+  overflow: auto;
+  font-size: 10px;
+  line-height: 1.4;
+  padding: 8px;
+  border-radius: 6px;
+  background: var(--tempest-bg-hover);
+  color: var(--tempest-fg-muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+}

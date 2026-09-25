@@ -137,6 +137,7 @@ function run(cfg) {
 
   // Per-turn state so we don't re-emit the same tool_use for repeated updates.
   const emittedToolUse = new Set();
+  const commandOutput = new Map();
 
   function handleItem(phase, item) {
     const id = String(item.id ?? randomUUID());
@@ -157,6 +158,19 @@ function run(cfg) {
         if (!emittedToolUse.has(id)) {
           emittedToolUse.add(id);
           emit({ t: "tool_use", id, name: "Bash", input: { command: item.command ?? item.cmd ?? "" } });
+        }
+        // Codex may expose incremental aggregated output on item.updated.
+        // Forward only the newly available suffix so the UI can render the
+        // command while it is still running.
+        if (phase === "item.updated") {
+          const output = item.aggregated_output ?? item.stdout ?? item.output;
+          if (typeof output === "string" && output) {
+            const prev = commandOutput.get(id) ?? "";
+            if (output.length > prev.length) {
+              commandOutput.set(id, output);
+              emit({ t: "tool_output", id, output: output.slice(prev.length), stream: "stdout" });
+            }
+          }
         }
         if (phase === "item.completed") {
           emit({

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Tempest",
+  "productName": "Andro",
   "version": "0.1.22",
   "identifier": "com.user.tempest",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Tempest",
+        "title": "Andro",
         "width": 1280,
         "height": 800,
         "decorations": false,

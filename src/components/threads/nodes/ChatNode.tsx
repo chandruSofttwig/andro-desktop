@@ -490,6 +490,19 @@ export function ChatNode({ id, data }: { id: string; data?: { collapsed?: boolea
           break;
         }
 
+        case "tool-output": {
+          setParts(parts.map((p) => {
+            if (p.type !== "tool-call" || p.id !== event.id) return p;
+            const current = p.result as { content?: unknown } | undefined;
+            const previous = typeof current?.content === "string" ? current.content : "";
+            return {
+              ...p,
+              result: { ...(typeof p.result === "object" && p.result ? p.result : {}), content: previous + event.output },
+            };
+          }));
+          break;
+        }
+
         case "tool-result": {
           setParts(parts.map((p) =>
             p.type === "tool-call" && p.id === event.id
@@ -835,7 +848,7 @@ export function ChatNode({ id, data }: { id: string; data?: { collapsed?: boolea
                 ) : (
                   msg.parts.map((part, i) => {
                     if (part.type === "text") return <Markdown key={i}>{part.content}</Markdown>;
-                    if (part.type === "tool-call") return <ToolCallCard key={part.id} part={part} />;
+                    if (part.type === "tool-call") return <ToolCallCard key={part.id} part={part} liveOutput={isStreaming && part.status === "running"} />;
                     if (part.type === "proposal") {
                       return (
                         <ProposalCard

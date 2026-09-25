@@ -2,7 +2,7 @@
 //!
 //! # Architecture
 //!
-//! Each sandboxed environment is launched under `bwrap` with:
+//! Enforce environments are launched under `bwrap` with:
 //!
 //! - `--unshare-pid`       — private PID namespace; bwrap becomes init.
 //! - `--die-with-parent`   — sandbox exits if the Tempest process exits.
@@ -15,6 +15,9 @@
 //! - `--ro-bind`           — system paths and `PathMount::ro` entries.
 //! - `--dev /dev`          — minimal /dev inside the namespace.
 //! - `--proc /proc`        — /proc mount required by many tools.
+//!
+//! Monitor mode runs the original command in the host namespaces, with the
+//! log-only CONNECT proxy. It must not restrict network or filesystem access.
 //!
 //! Resource limits are applied via cgroups v2 using the systemd user slice
 //! (`/sys/fs/cgroup/user.slice/…`) for unprivileged delegation.
@@ -120,6 +123,26 @@ impl Isolate for LinuxIsolate {
             });
         }
 
+        // Monitor is observational: the host network makes the loopback proxy
+        // reachable, and the normal filesystem keeps CLI binaries, credentials,
+        // and shell startup files available. Namespace restrictions belong only
+        // to Enforce mode.
+        if spec.mode == SandboxMode::Monitor {
+            let mut env = HashMap::new();
+            if let Some(proxy) = &state.proxy {
+                let url: OsString = proxy.url().into();
+                for key in ["http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY"] {
+                    env.insert(key.into(), url.clone());
+                }
+            }
+            return Ok(SandboxedCommand {
+                program: program.to_os_string(),
+                args: args.to_vec(),
+                env,
+                working_dir: Some(spec.root.clone()),
+            });
+        }
+
         // Build the bwrap argv.
         let mut bwrap_args: Vec<OsString> = Vec::new();
 
@@ -220,3 +243,40 @@ const SYSTEM_RO_PATHS: &[&str] = &[
     "/etc/localtime",
     "/etc/ssl/certs",
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn monitor_preserves_command_and_can_reach_host_proxy() {
+        let isolate = LinuxIsolate::new();
+        let spec = EnvironmentSpec::builder("monitor-test", std::env::temp_dir())
+            .mode(SandboxMode::Monitor)
+            .build().unwrap();
+        let handle = isolate.create(spec).unwrap();
+        let args = vec![OsString::from("-il")];
+        let prepared = isolate.prepare(&handle, OsStr::new("/bin/bash"), &args).unwrap();
+        assert_eq!(prepared.program, OsStr::new("/bin/bash"));
+        assert_eq!(prepared.args, args);
+        assert_eq!(prepared.working_dir, Some(std::env::temp_dir()));
+        let proxy = prepared.env.get(OsStr::new("HTTPS_PROXY")).unwrap().to_str().unwrap();
+        let address = proxy.strip_prefix("http://").unwrap();
+        assert!(std::net::TcpStream::connect(address).is_ok());
+        isolate.destroy(handle).unwrap();
+    }
+
+    #[test]
+    fn enforce_keeps_namespace_restrictions() {
+        let isolate = LinuxIsolate::new();
+        let spec = EnvironmentSpec::builder("enforce-test", std::env::temp_dir())
+            .mode(SandboxMode::Enforce)
+            .build().unwrap();
+        let handle = isolate.create(spec).unwrap();
+        let prepared = isolate.prepare(&handle, OsStr::new("/bin/bash"), &[]).unwrap();
+        assert_eq!(prepared.program, OsStr::new("bwrap"));
+        assert!(prepared.args.contains(&OsString::from("--unshare-net")));
+        assert!(prepared.args.contains(&OsString::from("--unshare-pid")));
+        isolate.destroy(handle).unwrap();
+    }
+}

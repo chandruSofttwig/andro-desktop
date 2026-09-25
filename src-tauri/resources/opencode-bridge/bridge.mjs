@@ -121,8 +121,18 @@ async function run(cfg) {
           if (part.state?.status === "running" && !toolIds.has(id)) {
             toolIds.set(id, part.tool);
             emit({ t: "tool_use", id, name: part.tool, input: part.state?.input ?? {} });
-          } else if (part.state?.status === "completed" || part.state?.status === "error") {
-            emit({ t: "tool_result", id, content: part.state?.output ?? "", isError: part.state?.status === "error" });
+          } else {
+            const output = part.state?.output ?? part.state?.metadata?.output;
+            if (typeof output === "string" && output) {
+              const prev = emittedLen.get(`tool-output:${id}`) ?? 0;
+              if (output.length > prev) {
+                emit({ t: "tool_output", id, output: output.slice(prev), stream: "stdout" });
+                emittedLen.set(`tool-output:${id}`, output.length);
+              }
+            }
+            if (part.state?.status === "completed" || part.state?.status === "error") {
+              emit({ t: "tool_result", id, content: output ?? "", isError: part.state?.status === "error" });
+            }
           }
         }
         break;

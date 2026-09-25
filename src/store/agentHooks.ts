@@ -13,6 +13,7 @@ import { getSettings } from "./appSettings";
 import { getAdapter, installAll, uninstallAll } from "../lib/agentHooks";
 import { pushIslandNotif } from "./islandNotifs";
 import { track } from "../lib/telemetry";
+import { agentRuntime } from "../lib/agentRuntime";
 
 interface AgentHookEvent {
   agent: string;
@@ -31,6 +32,7 @@ export async function startAgentHooks(): Promise<void> {
 
   await listen<AgentHookEvent>("agent-hook", (evt) => {
     const { agent, session, event, body } = evt.payload;
+    agentRuntime.publish(session, "hook-received", { agent, event, body });
     const adapter = getAdapter(agent);
     if (!adapter) return;
     let parsed: unknown;
@@ -49,6 +51,8 @@ export async function startAgentHooks(): Promise<void> {
     }
     const state = adapter.parse(parsed);
     if (state) {
+      agentRuntime.setState(session, state === "working" ? "working" : state === "waiting" ? "waiting" : "idle");
+      agentRuntime.publish(session, "hook-state", { agent, state, coversWaiting: adapter.coversWaiting });
       sessionManager.applyHookState(session, state, adapter.coversWaiting);
       if (state === "waiting") {
         const detail = (parsed && typeof parsed === "object" && !Array.isArray(parsed))

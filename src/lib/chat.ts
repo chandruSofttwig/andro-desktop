@@ -29,6 +29,7 @@ const LOCAL_PROVIDERS = new Set(["ollama"]);
 export type ChatStreamEvent =
   | { type: "token";        delta: string }
   | { type: "tool-call";    id: string; toolName: string; args: unknown }
+  | { type: "tool-output";  id: string; output: string; stream?: "stdout" | "stderr" | "info" }
   | { type: "tool-result";  id: string; toolName: string; result: unknown }
   | { type: "finish";       inputTokens: number; outputTokens: number; sessionId?: string }
   // CLI-backend only: the harness wants to use a tool; UI shows an approve/deny card.

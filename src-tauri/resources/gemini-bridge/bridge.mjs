@@ -110,8 +110,13 @@ async function run(cfg) {
         break;
       }
       case "tool_call_update": {
+        const id = String(u.toolCallId);
+        const output = u.rawOutput ?? u.output ?? u.content;
+        if (typeof output === "string" && output) {
+          emit({ t: "tool_output", id, output, stream: "stdout" });
+        }
         if (u.status === "completed" || u.status === "failed") {
-          emit({ t: "tool_result", id: String(u.toolCallId), content: u.content ?? u.rawOutput ?? "", isError: u.status === "failed" });
+          emit({ t: "tool_result", id, content: output ?? "", isError: u.status === "failed" });
         }
         break;
       }

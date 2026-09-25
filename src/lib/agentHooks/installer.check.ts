@@ -239,6 +239,7 @@ checkPlan(cursorAdapter, "cursor", "/home/u/.cursor/hooks.json", "tempest-cursor
   assert.strictEqual(antigravityAdapter.parse({ hook_event_name: "Stop", fullyIdle: false }), "working", "Stop with fullyIdle:false is still working");
   assert.strictEqual(antigravityAdapter.parse({ hook_event_name: "PreInvocation" }), "working");
   assert.strictEqual(antigravityAdapter.coversWaiting, false);
+  assert.strictEqual(antigravityAdapter.id, "agy", "Antigravity adapter uses the manifest id");
 }
 
 // ── SHA-256 correctness (known vectors) ──────────────────────────────────────
