@@ -1,0 +1,11 @@
+# Used by npm pack/publish. Built assets live under dist/ (including dist/ui).
+src/
+scripts/
+node_modules/
+ui/
+.env
+.env.*
+*.log
+*.tgz
+.DS_Store
+.git/
